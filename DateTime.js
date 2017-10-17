@@ -61,6 +61,8 @@ var Datetime = createClass({
 
 		state.currentView = this.props.dateFormat ? (this.props.viewMode || state.updateOn || 'days') : 'time';
 
+		state.offset = { width: 0, height: 0 };
+
 		return state;
 	},
 
@@ -355,6 +357,16 @@ var Datetime = createClass({
 		if (!this.state.open) {
 			this.setState({ open: true }, function() {
 				this.props.onFocus();
+				this.updateDimension();
+			});
+		}
+	},
+	
+	updateDimension: function() {
+		if (this.props.autoPosition) {
+			var dimension = this.refs.calendar.getBoundingClientRect();
+			this.setState({
+				offset: { width: dimension.width, height: dimension.height }
 			});
 		}
 	},
@@ -406,13 +418,28 @@ var Datetime = createClass({
 
 		return props;
 	},
+	
+	calcPositionCalendar: function() {
+		if (this.refs.inputWrapper) {
+			var positionStyle = {position: 'absolute'};
+			var offset = this.refs.inputWrapper.getBoundingClientRect();
+			if (offset.left + this.state.offset.width > window.innerWidth) {
+				positionStyle.right = 0;
+			}
+			if (offset.top + this.state.offset.height > window.innerHeight) {
+				positionStyle.bottom = offset.height;
+			}
+			return positionStyle;
+		}
+		return {};
+	},
 
 	render: function() {
 		// TODO: Make a function or clean up this code,
 		// logic right now is really hard to follow
 		var className = 'rdt' + (this.props.className ?
-                  ( Array.isArray( this.props.className ) ?
-                  ' ' + this.props.className.join( ' ' ) : ' ' + this.props.className) : ''),
+									( Array.isArray( this.props.className ) ?
+									' ' + this.props.className.join( ' ' ) : ' ' + this.props.className) : ''),
 			children = [];
 
 		if ( this.props.input ) {
@@ -432,9 +459,13 @@ var Datetime = createClass({
 		if ( this.state.open )
 			className += ' rdtOpen';
 
-		return React.createElement('div', {className: className}, children.concat(
+		var position = {};
+		if ( this.props.autoPosition )
+			position = this.calcPositionCalendar();
+		
+		return React.createElement('div', { className: className, ref: 'inputWrapper' }, children.concat(
 			React.createElement('div',
-				{ key: 'dt', className: 'rdtPicker' },
+				{ key: 'dt', className: 'rdtPicker', ref: 'calendar', style: position },
 				React.createElement( CalendarContainer, {view: this.state.currentView, viewProps: this.getComponentProps(), onClickOutside: this.handleClickOutside })
 			)
 		));
