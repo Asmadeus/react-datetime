@@ -425,8 +425,9 @@ var Datetime = createClass({
 			var offset = this.refs.inputWrapper.getBoundingClientRect();
 			if (offset.left + this.state.offset.width > window.innerWidth) {
 				positionStyle.right = 0;
-			}
-			if (offset.top + this.state.offset.height > window.innerHeight) {
+      }
+      if (offset.top + this.state.offset.height > window.innerHeight && 
+          offset.top - this.state.offset.height > 0) {
 				positionStyle.bottom = offset.height;
 			}
 			return positionStyle;
