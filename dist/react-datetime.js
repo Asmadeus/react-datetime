@@ -12,7 +12,7 @@ MIT: https://github.com/YouCanBookMe/react-datetime/raw/master/LICENSE
 		exports["Datetime"] = factory(require("React"), require("moment"), require("ReactDOM"));
 	else
 		root["Datetime"] = factory(root["React"], root["moment"], root["ReactDOM"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_12__, __WEBPACK_EXTERNAL_MODULE_16__, __WEBPACK_EXTERNAL_MODULE_20__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_13__, __WEBPACK_EXTERNAL_MODULE_17__, __WEBPACK_EXTERNAL_MODULE_21__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -63,10 +63,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var assign = __webpack_require__(1),
 		PropTypes = __webpack_require__(2),
-		createClass = __webpack_require__(11),
-		moment = __webpack_require__(16),
-		React = __webpack_require__(12),
-		CalendarContainer = __webpack_require__(17)
+		createClass = __webpack_require__(12),
+		moment = __webpack_require__(17),
+		React = __webpack_require__(13),
+		CalendarContainer = __webpack_require__(18)
 		;
 
 	var TYPES = PropTypes;
@@ -121,6 +121,8 @@ return /******/ (function(modules) { // webpackBootstrap
 				state.open = !this.props.input;
 
 			state.currentView = this.props.dateFormat ? (this.props.viewMode || state.updateOn || 'days') : 'time';
+
+			state.offset = { width: 0, height: 0 };
 
 			return state;
 		},
@@ -416,6 +418,16 @@ return /******/ (function(modules) { // webpackBootstrap
 			if (!this.state.open) {
 				this.setState({ open: true }, function() {
 					this.props.onFocus();
+					this.updateDimension();
+				});
+			}
+		},
+		
+		updateDimension: function() {
+			if (this.props.autoPosition) {
+				var dimension = this.refs.calendar.getBoundingClientRect();
+				this.setState({
+					offset: { width: dimension.width, height: dimension.height }
 				});
 			}
 		},
@@ -467,13 +479,28 @@ return /******/ (function(modules) { // webpackBootstrap
 
 			return props;
 		},
+		
+		calcPositionCalendar: function() {
+			if (this.refs.inputWrapper) {
+				var positionStyle = {position: 'absolute'};
+				var offset = this.refs.inputWrapper.getBoundingClientRect();
+				if (offset.left + this.state.offset.width > window.innerWidth) {
+					positionStyle.right = 0;
+				}
+				if (offset.top + this.state.offset.height > window.innerHeight) {
+					positionStyle.bottom = offset.height;
+				}
+				return positionStyle;
+			}
+			return {};
+		},
 
 		render: function() {
 			// TODO: Make a function or clean up this code,
 			// logic right now is really hard to follow
 			var className = 'rdt' + (this.props.className ?
-	                  ( Array.isArray( this.props.className ) ?
-	                  ' ' + this.props.className.join( ' ' ) : ' ' + this.props.className) : ''),
+										( Array.isArray( this.props.className ) ?
+										' ' + this.props.className.join( ' ' ) : ' ' + this.props.className) : ''),
 				children = [];
 
 			if ( this.props.input ) {
@@ -493,9 +520,13 @@ return /******/ (function(modules) { // webpackBootstrap
 			if ( this.state.open )
 				className += ' rdtOpen';
 
-			return React.createElement('div', {className: className}, children.concat(
+			var position = {};
+			if ( this.props.autoPosition )
+				position = this.calcPositionCalendar();
+			
+			return React.createElement('div', { className: className, ref: 'inputWrapper' }, children.concat(
 				React.createElement('div',
-					{ key: 'dt', className: 'rdtPicker' },
+					{ key: 'dt', className: 'rdtPicker', ref: 'calendar', style: position },
 					React.createElement( CalendarContainer, {view: this.state.currentView, viewProps: this.getComponentProps(), onClickOutside: this.handleClickOutside })
 				)
 			));
@@ -558,12 +589,10 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-present, Facebook, Inc.
-	 * All rights reserved.
+	 * Copyright (c) 2013-present, Facebook, Inc.
 	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
+	 * This source code is licensed under the MIT license found in the
+	 * LICENSE file in the root directory of this source tree.
 	 */
 
 	if (process.env.NODE_ENV !== 'production') {
@@ -585,7 +614,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	} else {
 	  // By explicitly using `prop-types` you are opting into new production behavior.
 	  // http://fb.me/prop-types-in-prod
-	  module.exports = __webpack_require__(10)();
+	  module.exports = __webpack_require__(11)();
 	}
 
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
@@ -785,12 +814,10 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-present, Facebook, Inc.
-	 * All rights reserved.
+	 * Copyright (c) 2013-present, Facebook, Inc.
 	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
+	 * This source code is licensed under the MIT license found in the
+	 * LICENSE file in the root directory of this source tree.
 	 */
 
 	'use strict';
@@ -798,9 +825,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	var emptyFunction = __webpack_require__(5);
 	var invariant = __webpack_require__(6);
 	var warning = __webpack_require__(7);
+	var assign = __webpack_require__(8);
 
-	var ReactPropTypesSecret = __webpack_require__(8);
-	var checkPropTypes = __webpack_require__(9);
+	var ReactPropTypesSecret = __webpack_require__(9);
+	var checkPropTypes = __webpack_require__(10);
 
 	module.exports = function(isValidElement, throwOnDirectAccess) {
 	  /* global Symbol */
@@ -896,7 +924,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    objectOf: createObjectOfTypeChecker,
 	    oneOf: createEnumTypeChecker,
 	    oneOfType: createUnionTypeChecker,
-	    shape: createShapeTypeChecker
+	    shape: createShapeTypeChecker,
+	    exact: createStrictShapeTypeChecker,
 	  };
 
 	  /**
@@ -1111,7 +1140,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (typeof checker !== 'function') {
 	        warning(
 	          false,
-	          'Invalid argument supplid to oneOfType. Expected an array of check functions, but ' +
+	          'Invalid argument supplied to oneOfType. Expected an array of check functions, but ' +
 	          'received %s at index %s.',
 	          getPostfixForTypeWarning(checker),
 	          i
@@ -1162,6 +1191,36 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	      return null;
 	    }
+	    return createChainableTypeChecker(validate);
+	  }
+
+	  function createStrictShapeTypeChecker(shapeTypes) {
+	    function validate(props, propName, componentName, location, propFullName) {
+	      var propValue = props[propName];
+	      var propType = getPropType(propValue);
+	      if (propType !== 'object') {
+	        return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type `' + propType + '` ' + ('supplied to `' + componentName + '`, expected `object`.'));
+	      }
+	      // We need to check all keys in case some are required but missing from
+	      // props.
+	      var allKeys = assign({}, props[propName], shapeTypes);
+	      for (var key in allKeys) {
+	        var checker = shapeTypes[key];
+	        if (!checker) {
+	          return new PropTypeError(
+	            'Invalid ' + location + ' `' + propFullName + '` key `' + key + '` supplied to `' + componentName + '`.' +
+	            '\nBad object: ' + JSON.stringify(props[propName], null, '  ') +
+	            '\nValid keys: ' +  JSON.stringify(Object.keys(shapeTypes), null, '  ')
+	          );
+	        }
+	        var error = checker(propValue, key, componentName, location, propFullName + '.' + key, ReactPropTypesSecret);
+	        if (error) {
+	          return error;
+	        }
+	      }
+	      return null;
+	    }
+
 	    return createChainableTypeChecker(validate);
 	  }
 
@@ -1307,11 +1366,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	/**
 	 * Copyright (c) 2013-present, Facebook, Inc.
-	 * All rights reserved.
 	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
+	 * This source code is licensed under the MIT license found in the
+	 * LICENSE file in the root directory of this source tree.
 	 *
 	 * 
 	 */
@@ -1348,11 +1405,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright (c) 2013-present, Facebook, Inc.
-	 * All rights reserved.
 	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
+	 * This source code is licensed under the MIT license found in the
+	 * LICENSE file in the root directory of this source tree.
 	 *
 	 */
 
@@ -1408,12 +1463,10 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2014-2015, Facebook, Inc.
-	 * All rights reserved.
+	 * Copyright (c) 2014-present, Facebook, Inc.
 	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
+	 * This source code is licensed under the MIT license found in the
+	 * LICENSE file in the root directory of this source tree.
 	 *
 	 */
 
@@ -1431,45 +1484,43 @@ return /******/ (function(modules) { // webpackBootstrap
 	var warning = emptyFunction;
 
 	if (process.env.NODE_ENV !== 'production') {
-	  (function () {
-	    var printWarning = function printWarning(format) {
-	      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-	        args[_key - 1] = arguments[_key];
+	  var printWarning = function printWarning(format) {
+	    for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+	      args[_key - 1] = arguments[_key];
+	    }
+
+	    var argIndex = 0;
+	    var message = 'Warning: ' + format.replace(/%s/g, function () {
+	      return args[argIndex++];
+	    });
+	    if (typeof console !== 'undefined') {
+	      console.error(message);
+	    }
+	    try {
+	      // --- Welcome to debugging React ---
+	      // This error was thrown as a convenience so that you can use this stack
+	      // to find the callsite that caused this warning to fire.
+	      throw new Error(message);
+	    } catch (x) {}
+	  };
+
+	  warning = function warning(condition, format) {
+	    if (format === undefined) {
+	      throw new Error('`warning(condition, format, ...args)` requires a warning ' + 'message argument');
+	    }
+
+	    if (format.indexOf('Failed Composite propType: ') === 0) {
+	      return; // Ignore CompositeComponent proptype check.
+	    }
+
+	    if (!condition) {
+	      for (var _len2 = arguments.length, args = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
+	        args[_key2 - 2] = arguments[_key2];
 	      }
 
-	      var argIndex = 0;
-	      var message = 'Warning: ' + format.replace(/%s/g, function () {
-	        return args[argIndex++];
-	      });
-	      if (typeof console !== 'undefined') {
-	        console.error(message);
-	      }
-	      try {
-	        // --- Welcome to debugging React ---
-	        // This error was thrown as a convenience so that you can use this stack
-	        // to find the callsite that caused this warning to fire.
-	        throw new Error(message);
-	      } catch (x) {}
-	    };
-
-	    warning = function warning(condition, format) {
-	      if (format === undefined) {
-	        throw new Error('`warning(condition, format, ...args)` requires a warning ' + 'message argument');
-	      }
-
-	      if (format.indexOf('Failed Composite propType: ') === 0) {
-	        return; // Ignore CompositeComponent proptype check.
-	      }
-
-	      if (!condition) {
-	        for (var _len2 = arguments.length, args = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
-	          args[_key2 - 2] = arguments[_key2];
-	        }
-
-	        printWarning.apply(undefined, [format].concat(args));
-	      }
-	    };
-	  })();
+	      printWarning.apply(undefined, [format].concat(args));
+	    }
+	  };
 	}
 
 	module.exports = warning;
@@ -1479,13 +1530,107 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 8 */
 /***/ (function(module, exports) {
 
+	/*
+	object-assign
+	(c) Sindre Sorhus
+	@license MIT
+	*/
+
+	'use strict';
+	/* eslint-disable no-unused-vars */
+	var getOwnPropertySymbols = Object.getOwnPropertySymbols;
+	var hasOwnProperty = Object.prototype.hasOwnProperty;
+	var propIsEnumerable = Object.prototype.propertyIsEnumerable;
+
+	function toObject(val) {
+		if (val === null || val === undefined) {
+			throw new TypeError('Object.assign cannot be called with null or undefined');
+		}
+
+		return Object(val);
+	}
+
+	function shouldUseNative() {
+		try {
+			if (!Object.assign) {
+				return false;
+			}
+
+			// Detect buggy property enumeration order in older V8 versions.
+
+			// https://bugs.chromium.org/p/v8/issues/detail?id=4118
+			var test1 = new String('abc');  // eslint-disable-line no-new-wrappers
+			test1[5] = 'de';
+			if (Object.getOwnPropertyNames(test1)[0] === '5') {
+				return false;
+			}
+
+			// https://bugs.chromium.org/p/v8/issues/detail?id=3056
+			var test2 = {};
+			for (var i = 0; i < 10; i++) {
+				test2['_' + String.fromCharCode(i)] = i;
+			}
+			var order2 = Object.getOwnPropertyNames(test2).map(function (n) {
+				return test2[n];
+			});
+			if (order2.join('') !== '0123456789') {
+				return false;
+			}
+
+			// https://bugs.chromium.org/p/v8/issues/detail?id=3056
+			var test3 = {};
+			'abcdefghijklmnopqrst'.split('').forEach(function (letter) {
+				test3[letter] = letter;
+			});
+			if (Object.keys(Object.assign({}, test3)).join('') !==
+					'abcdefghijklmnopqrst') {
+				return false;
+			}
+
+			return true;
+		} catch (err) {
+			// We don't expect any of the above to throw, but better to be safe.
+			return false;
+		}
+	}
+
+	module.exports = shouldUseNative() ? Object.assign : function (target, source) {
+		var from;
+		var to = toObject(target);
+		var symbols;
+
+		for (var s = 1; s < arguments.length; s++) {
+			from = Object(arguments[s]);
+
+			for (var key in from) {
+				if (hasOwnProperty.call(from, key)) {
+					to[key] = from[key];
+				}
+			}
+
+			if (getOwnPropertySymbols) {
+				symbols = getOwnPropertySymbols(from);
+				for (var i = 0; i < symbols.length; i++) {
+					if (propIsEnumerable.call(from, symbols[i])) {
+						to[symbols[i]] = from[symbols[i]];
+					}
+				}
+			}
+		}
+
+		return to;
+	};
+
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports) {
+
 	/**
-	 * Copyright 2013-present, Facebook, Inc.
-	 * All rights reserved.
+	 * Copyright (c) 2013-present, Facebook, Inc.
 	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
+	 * This source code is licensed under the MIT license found in the
+	 * LICENSE file in the root directory of this source tree.
 	 */
 
 	'use strict';
@@ -1496,16 +1641,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-present, Facebook, Inc.
-	 * All rights reserved.
+	 * Copyright (c) 2013-present, Facebook, Inc.
 	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
+	 * This source code is licensed under the MIT license found in the
+	 * LICENSE file in the root directory of this source tree.
 	 */
 
 	'use strict';
@@ -1513,7 +1656,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	if (process.env.NODE_ENV !== 'production') {
 	  var invariant = __webpack_require__(6);
 	  var warning = __webpack_require__(7);
-	  var ReactPropTypesSecret = __webpack_require__(8);
+	  var ReactPropTypesSecret = __webpack_require__(9);
 	  var loggedTypeFailures = {};
 	}
 
@@ -1539,7 +1682,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        try {
 	          // This is intentionally an invariant that gets caught. It's the same
 	          // behavior as without this statement except with a better message.
-	          invariant(typeof typeSpecs[typeSpecName] === 'function', '%s: %s type `%s` is invalid; it must be a function, usually from ' + 'React.PropTypes.', componentName || 'React class', location, typeSpecName);
+	          invariant(typeof typeSpecs[typeSpecName] === 'function', '%s: %s type `%s` is invalid; it must be a function, usually from ' + 'the `prop-types` package, but received `%s`.', componentName || 'React class', location, typeSpecName, typeof typeSpecs[typeSpecName]);
 	          error = typeSpecs[typeSpecName](values, typeSpecName, componentName, location, null, ReactPropTypesSecret);
 	        } catch (ex) {
 	          error = ex;
@@ -1564,23 +1707,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-present, Facebook, Inc.
-	 * All rights reserved.
+	 * Copyright (c) 2013-present, Facebook, Inc.
 	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
+	 * This source code is licensed under the MIT license found in the
+	 * LICENSE file in the root directory of this source tree.
 	 */
 
 	'use strict';
 
 	var emptyFunction = __webpack_require__(5);
 	var invariant = __webpack_require__(6);
-	var ReactPropTypesSecret = __webpack_require__(8);
+	var ReactPropTypesSecret = __webpack_require__(9);
 
 	module.exports = function() {
 	  function shim(props, propName, componentName, location, propFullName, secret) {
@@ -1618,7 +1759,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    objectOf: getShim,
 	    oneOf: getShim,
 	    oneOfType: getShim,
-	    shape: getShim
+	    shape: getShim,
+	    exact: getShim
 	  };
 
 	  ReactPropTypes.checkPropTypes = emptyFunction;
@@ -1629,23 +1771,21 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
-	 * Copyright 2013-present, Facebook, Inc.
-	 * All rights reserved.
+	 * Copyright (c) 2013-present, Facebook, Inc.
 	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
+	 * This source code is licensed under the MIT license found in the
+	 * LICENSE file in the root directory of this source tree.
 	 *
 	 */
 
 	'use strict';
 
-	var React = __webpack_require__(12);
-	var factory = __webpack_require__(13);
+	var React = __webpack_require__(13);
+	var factory = __webpack_require__(14);
 
 	if (typeof React === 'undefined') {
 	  throw Error(
@@ -1665,30 +1805,28 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports) {
 
-	module.exports = __WEBPACK_EXTERNAL_MODULE_12__;
+	module.exports = __WEBPACK_EXTERNAL_MODULE_13__;
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-present, Facebook, Inc.
-	 * All rights reserved.
+	 * Copyright (c) 2013-present, Facebook, Inc.
 	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
+	 * This source code is licensed under the MIT license found in the
+	 * LICENSE file in the root directory of this source tree.
 	 *
 	 */
 
 	'use strict';
 
-	var _assign = __webpack_require__(14);
+	var _assign = __webpack_require__(15);
 
-	var emptyObject = __webpack_require__(15);
+	var emptyObject = __webpack_require__(16);
 	var _invariant = __webpack_require__(6);
 
 	if (process.env.NODE_ENV !== 'production') {
@@ -2550,7 +2688,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports) {
 
 	/*
@@ -2646,16 +2784,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright (c) 2013-present, Facebook, Inc.
-	 * All rights reserved.
 	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
+	 * This source code is licensed under the MIT license found in the
+	 * LICENSE file in the root directory of this source tree.
 	 *
 	 */
 
@@ -2671,23 +2807,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports) {
 
-	module.exports = __WEBPACK_EXTERNAL_MODULE_16__;
+	module.exports = __WEBPACK_EXTERNAL_MODULE_17__;
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var React = __webpack_require__(12),
-		createClass = __webpack_require__(11),
-		DaysView = __webpack_require__(18),
-		MonthsView = __webpack_require__(22),
-		YearsView = __webpack_require__(23),
-		TimeView = __webpack_require__(24)
+	var React = __webpack_require__(13),
+		createClass = __webpack_require__(12),
+		DaysView = __webpack_require__(19),
+		MonthsView = __webpack_require__(24),
+		YearsView = __webpack_require__(25),
+		TimeView = __webpack_require__(26)
 		;
 
 	var CalendarContainer = createClass({
@@ -2707,15 +2843,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var React = __webpack_require__(12),
-		createClass = __webpack_require__(11),
-		moment = __webpack_require__(16),
-		onClickOutside = __webpack_require__(19).default
+	var React = __webpack_require__(13),
+		createClass = __webpack_require__(12),
+		moment = __webpack_require__(17),
+		onClickOutside = __webpack_require__(20).default
 		;
 
 	var DateTimePickerDays = onClickOutside( createClass({
@@ -2857,7 +2993,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2866,15 +3002,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.IGNORE_CLASS_NAME = undefined;
 	exports.default = onClickOutsideHOC;
 
-	var _react = __webpack_require__(12);
+	var _react = __webpack_require__(13);
 
-	var _reactDom = __webpack_require__(20);
+	var _reactDom = __webpack_require__(21);
 
-	var _generateOutsideCheck = __webpack_require__(21);
+	var _domHelpers = __webpack_require__(22);
 
-	var _generateOutsideCheck2 = _interopRequireDefault(_generateOutsideCheck);
+	var DOMHelpers = _interopRequireWildcard(_domHelpers);
+
+	var _uid = __webpack_require__(23);
+
+	var _uid2 = _interopRequireDefault(_uid);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -2882,11 +3024,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	/**
-	 * A higher-order-component for handling onClickOutside for React components.
-	 */
-	var registeredComponents = [];
-	var handlers = [];
+	var handlersMap = {};
 
 	var touchEvents = ['touchstart', 'touchmove'];
 	var IGNORE_CLASS_NAME = exports.IGNORE_CLASS_NAME = 'ignore-react-onclickoutside';
@@ -2913,27 +3051,68 @@ return /******/ (function(modules) { // webpackBootstrap
 	        args[_key] = arguments[_key];
 	      }
 
-	      return _ret = (_temp = (_this = _possibleConstructorReturn(this, _Component.call.apply(_Component, [this].concat(args))), _this), _this.__outsideClickHandler = null, _this.enableOnClickOutside = function () {
-	        var fn = _this.__outsideClickHandler;
-	        if (fn && typeof document !== 'undefined') {
-	          var events = _this.props.eventTypes;
-	          if (!events.forEach) {
-	            events = [events];
+	      return _ret = (_temp = (_this = _possibleConstructorReturn(this, _Component.call.apply(_Component, [this].concat(args))), _this), _this.__outsideClickHandler = function (event) {
+	        if (typeof _this.__clickOutsideHandlerProp === 'function') {
+	          _this.__clickOutsideHandlerProp(event);
+	          return;
+	        }
+
+	        var instance = _this.getInstance();
+
+	        if (typeof instance.props.handleClickOutside === 'function') {
+	          instance.props.handleClickOutside(event);
+	          return;
+	        }
+
+	        if (typeof instance.handleClickOutside === 'function') {
+	          instance.handleClickOutside(event);
+	          return;
+	        }
+
+	        throw new Error('WrappedComponent lacks a handleClickOutside(event) function for processing outside click events.');
+	      }, _this.enableOnClickOutside = function () {
+	        if (typeof document === 'undefined') return;
+
+	        var events = _this.props.eventTypes;
+	        if (!events.forEach) {
+	          events = [events];
+	        }
+
+	        handlersMap[_this._uid] = function (event) {
+	          if (_this.props.disableOnClickOutside) return;
+	          if (_this.componentNode === null) return;
+
+	          if (_this.props.preventDefault) {
+	            event.preventDefault();
 	          }
 
-	          events.forEach(function (eventName) {
-	            var handlerOptions = null;
-	            var isTouchEvent = touchEvents.indexOf(eventName) !== -1;
+	          if (_this.props.stopPropagation) {
+	            event.stopPropagation();
+	          }
 
-	            if (isTouchEvent) {
-	              handlerOptions = { passive: !_this.props.preventDefault };
-	            }
+	          if (_this.props.excludeScrollbar && DOMHelpers.clickedScrollbar(event)) return;
 
-	            document.addEventListener(eventName, fn, handlerOptions);
-	          });
-	        }
+	          var current = event.target;
+
+	          if (DOMHelpers.findHighest(current, _this.componentNode, _this.props.outsideClickIgnoreClass) !== document) {
+	            return;
+	          }
+
+	          _this.__outsideClickHandler(event);
+	        };
+
+	        events.forEach(function (eventName) {
+	          var handlerOptions = null;
+	          var isTouchEvent = touchEvents.indexOf(eventName) !== -1;
+
+	          if (isTouchEvent) {
+	            handlerOptions = { passive: !_this.props.preventDefault };
+	          }
+
+	          document.addEventListener(eventName, handlersMap[_this._uid], handlerOptions);
+	        });
 	      }, _this.disableOnClickOutside = function () {
-	        var fn = _this.__outsideClickHandler;
+	        var fn = handlersMap[_this._uid];
 	        if (fn && typeof document !== 'undefined') {
 	          var events = _this.props.eventTypes;
 	          if (!events.forEach) {
@@ -2942,6 +3121,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          events.forEach(function (eventName) {
 	            return document.removeEventListener(eventName, fn);
 	          });
+	          delete handlersMap[_this._uid];
 	        }
 	      }, _this.getRef = function (ref) {
 	        return _this.instanceRef = ref;
@@ -2959,14 +3139,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return ref.getInstance ? ref.getInstance() : ref;
 	    };
 
-	    // this is given meaning in componentDidMount/componentDidUpdate
-
-
 	    /**
 	     * Add click listeners to the current document,
 	     * linked to this component's state.
 	     */
 	    onClickOutside.prototype.componentDidMount = function componentDidMount() {
+	      this._uid = (0, _uid2.default)();
 	      // If we are in an environment without a DOM such
 	      // as shallow rendering or snapshots then we exit
 	      // early to prevent any unhandled errors being thrown.
@@ -2981,51 +3159,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (typeof this.__clickOutsideHandlerProp !== 'function') {
 	          throw new Error('WrappedComponent lacks a function for processing outside click events specified by the handleClickOutside config option.');
 	        }
-	      } else if (typeof instance.handleClickOutside === 'function') {
-	        if (_react.Component.prototype.isPrototypeOf(instance)) {
-	          this.__clickOutsideHandlerProp = instance.handleClickOutside.bind(instance);
-	        } else {
-	          this.__clickOutsideHandlerProp = instance.handleClickOutside;
-	        }
-	      } else if (typeof instance.props.handleClickOutside === 'function') {
-	        this.__clickOutsideHandlerProp = instance.props.handleClickOutside;
-	      } else {
-	        throw new Error('WrappedComponent lacks a handleClickOutside(event) function for processing outside click events.');
 	      }
 
-	      // TODO: try to get rid of this, could be done with function ref, might be problematic for SFC though, they do not expose refs
-	      if ((0, _reactDom.findDOMNode)(instance) === null) {
-	        return;
-	      }
-
-	      this.addOutsideClickHandler();
-	    };
-
-	    /**
-	    * Track for disableOnClickOutside props changes and enable/disable click outside
-	    */
-
-
-	    onClickOutside.prototype.componentWillReceiveProps = function componentWillReceiveProps(nextProps) {
-	      if (this.props.disableOnClickOutside && !nextProps.disableOnClickOutside) {
-	        this.enableOnClickOutside();
-	      } else if (!this.props.disableOnClickOutside && nextProps.disableOnClickOutside) {
-	        this.disableOnClickOutside();
-	      }
+	      this.componentNode = (0, _reactDom.findDOMNode)(this.getInstance());
+	      this.enableOnClickOutside();
 	    };
 
 	    onClickOutside.prototype.componentDidUpdate = function componentDidUpdate() {
-	      var componentNode = (0, _reactDom.findDOMNode)(this.getInstance());
-
-	      if (componentNode === null && this.__outsideClickHandler) {
-	        this.removeOutsideClickHandler();
-	        return;
-	      }
-
-	      if (componentNode !== null && !this.__outsideClickHandler) {
-	        this.addOutsideClickHandler();
-	        return;
-	      }
+	      this.componentNode = (0, _reactDom.findDOMNode)(this.getInstance());
 	    };
 
 	    /**
@@ -3034,7 +3175,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	    onClickOutside.prototype.componentWillUnmount = function componentWillUnmount() {
-	      this.removeOutsideClickHandler();
+	      this.disableOnClickOutside();
 	    };
 
 	    /**
@@ -3048,35 +3189,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * for clicks and touches outside of this element.
 	     */
 
-
-	    onClickOutside.prototype.addOutsideClickHandler = function addOutsideClickHandler() {
-	      var fn = this.__outsideClickHandler = (0, _generateOutsideCheck2.default)((0, _reactDom.findDOMNode)(this.getInstance()), this.__clickOutsideHandlerProp, this.props.outsideClickIgnoreClass, this.props.excludeScrollbar, this.props.preventDefault, this.props.stopPropagation);
-
-	      var pos = registeredComponents.length;
-	      registeredComponents.push(this);
-	      handlers[pos] = fn;
-
-	      // If there is a truthy disableOnClickOutside property for this
-	      // component, don't immediately start listening for outside events.
-	      if (!this.props.disableOnClickOutside) {
-	        this.enableOnClickOutside();
-	      }
-	    };
-
-	    onClickOutside.prototype.removeOutsideClickHandler = function removeOutsideClickHandler() {
-	      this.disableOnClickOutside();
-	      this.__outsideClickHandler = false;
-
-	      var pos = registeredComponents.indexOf(this);
-
-	      if (pos > -1) {
-	        // clean up so we don't leak memory
-	        if (handlers[pos]) {
-	          handlers.splice(pos, 1);
-	        }
-	        registeredComponents.splice(pos, 1);
-	      }
-	    };
 
 	    /**
 	     * Pass-through render
@@ -3116,19 +3228,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports) {
 
-	module.exports = __WEBPACK_EXTERNAL_MODULE_20__;
+	module.exports = __WEBPACK_EXTERNAL_MODULE_21__;
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports) {
 
 	"use strict";
 
 	exports.__esModule = true;
-	exports.default = generateOutsideCheck;
+	exports.isNodeFound = isNodeFound;
+	exports.findHighest = findHighest;
+	exports.clickedScrollbar = clickedScrollbar;
 	/**
 	 * Check whether some DOM node is our Component's node.
 	 */
@@ -3178,35 +3292,32 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return document.documentElement.clientWidth <= evt.clientX || document.documentElement.clientHeight <= evt.clientY;
 	}
 
-	/**
-	 * Generate the event handler that checks whether a clicked DOM node
-	 * is inside of, or lives outside of, our Component's node tree.
-	 */
-	function generateOutsideCheck(componentNode, eventHandler, ignoreClass, excludeScrollbar, preventDefault, stopPropagation) {
-	  return function (evt) {
-	    if (preventDefault) {
-	      evt.preventDefault();
-	    }
-	    if (stopPropagation) {
-	      evt.stopPropagation();
-	    }
-	    var current = evt.target;
-	    if (excludeScrollbar && clickedScrollbar(evt) || findHighest(current, componentNode, ignoreClass) !== document) {
-	      return;
-	    }
-	    eventHandler(evt);
+/***/ }),
+/* 23 */
+/***/ (function(module, exports) {
+
+	"use strict";
+
+	exports.__esModule = true;
+	function autoInc() {
+	  var seed = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+
+	  return function () {
+	    return ++seed;
 	  };
 	}
 
+	exports.default = autoInc();
+
 /***/ }),
-/* 22 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var React = __webpack_require__(12),
-		createClass = __webpack_require__(11),
-		onClickOutside = __webpack_require__(19).default
+	var React = __webpack_require__(13),
+		createClass = __webpack_require__(12),
+		onClickOutside = __webpack_require__(20).default
 		;
 
 	var DateTimePickerMonths = onClickOutside( createClass({
@@ -3312,14 +3423,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 23 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var React = __webpack_require__(12),
-		createClass = __webpack_require__(11),
-		onClickOutside = __webpack_require__(19).default
+	var React = __webpack_require__(13),
+		createClass = __webpack_require__(12),
+		onClickOutside = __webpack_require__(20).default
 		;
 
 	var DateTimePickerYears = onClickOutside( createClass({
@@ -3423,15 +3534,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 24 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var React = __webpack_require__(12),
-		createClass = __webpack_require__(11),
+	var React = __webpack_require__(13),
+		createClass = __webpack_require__(12),
 		assign = __webpack_require__(1),
-		onClickOutside = __webpack_require__(19).default
+		onClickOutside = __webpack_require__(20).default
 		;
 
 	var DateTimePickerTime = onClickOutside( createClass({
