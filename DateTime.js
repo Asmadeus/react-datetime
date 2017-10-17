@@ -92,15 +92,16 @@ var Datetime = createClass({
 		else if ( date.isValid && !date.isValid() )
 			inputValue = '';
 		else
-			inputValue = date || '';
-
+      inputValue = date || '';
+      
 		return {
 			updateOn: updateOn,
 			inputFormat: formats.datetime,
 			viewDate: viewDate,
 			selectedDate: selectedDate,
 			inputValue: inputValue,
-			open: props.open
+      open: props.open,
+      documentRect: props.documentRect
 		};
 	},
 
@@ -427,9 +428,9 @@ var Datetime = createClass({
 				positionStyle.right = 0;
       }
       if (offset.top + this.state.offset.height > window.innerHeight && 
-          offset.top - this.state.offset.height > 0) {
+        offset.top - this.state.offset.height > ((this.state.documentRect && this.state.documentRect.top) || 0)) {
 				positionStyle.bottom = offset.height;
-			}
+      }
 			return positionStyle;
 		}
 		return {};
